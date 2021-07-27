@@ -15,22 +15,32 @@ function checksExistsUserAccount(request, response, next) {
 
   request.user = user;
   if (user) next();
+
+  return response.status(404).json({ error: 'User not found' });
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
   const {pro, todos} = request.user;
 
   if (pro || todos.length <= 10) next();
+
+  return response.status(403).json({ error: 'Todos limit reached' });
 }
 
 function checksTodoExists(request, response, next) {
   const {id} = request.params;
+
+  if (!validate(id)) return response.status(400);
+
   users.forEach((user) => { 
     const todo = user?.todos.find((todo) => todo.id === id);
-    if (todo) request.todo = todo;
+    if (todo) {
+      request.todo = todo;
+      request.user = user;
+      next();
+    };
   });
 
-  if (request.todo) next();
   return response.status(404).json({ error: 'Todo not found' });
 }
 
@@ -38,8 +48,12 @@ function findUserById(request, response, next) {
   const {id} = request.params;
   const user = users.find((user) => user?.id === id);
 
-  request.user = user;
-  if (user) next();
+  if (user){
+    request.user = user;
+    next();
+  }
+
+  return response.status(404).json({ error: 'User not found' });
 }
 
 app.post('/users', (request, response) => {
