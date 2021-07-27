@@ -10,19 +10,36 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const {username} = request.headers;
+  const user = users.find((user) => user?.username === username);
+
+  request.user = user;
+  if (user) next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const {pro, todos} = request.user;
+
+  if (pro || todos.length <= 10) next();
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const {id} = request.params;
+  users.forEach((user) => { 
+    const todo = user?.todos.find((todo) => todo.id === id);
+    if (todo) request.todo = todo;
+  });
+
+  if (request.todo) next();
+  return response.status(404).json({ error: 'Todo not found' });
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const {id} = request.params;
+  const user = users.find((user) => user?.id === id);
+
+  request.user = user;
+  if (user) next();
 }
 
 app.post('/users', (request, response) => {
